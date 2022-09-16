@@ -1,5 +1,5 @@
 # go-brainfuck
- brainfuck interpreter and compiler in go.
+ brainfuck interpreter and compiler in go. I did this project in honor of the 10th anniversary of my first brainfuck program which can be seen [here](https://www.youtube.com/shorts/k8ufd-OyN1Y)
 
 ## Interpreter
  interpreter.go was the first iteration of my idea, taking only a single argument when running, which is the BF program to interpret. `go run interpreter.go "++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++.>+.+++++++..+++.>++.<<+++++++++++++++.>.+++.------.--------.>+.>."`
