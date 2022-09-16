@@ -2,7 +2,7 @@
  brainfuck interpreter and compiler in go.
 
 ## Interpreter
- interpreter.go was the first iteration, taking only a single argument when running, which is the BF program to interpret. `go run interpreter.go "some brainfuck"
+ interpreter.go was the first iteration of my idea, taking only a single argument when running, which is the BF program to interpret. `go run interpreter.go "++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++.>+.+++++++..+++.>++.<<+++++++++++++++.>.+++.------.--------.>+.>."`
 
 ## IL Compiler (intermediate language compiler)
  togo/togo.go is the second iteration that makes an BF > Go > Executable IL compiler to run your sweet BF directly in bytecode on your computer.
