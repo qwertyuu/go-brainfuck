@@ -10,6 +10,8 @@
  Example:
  `go run togo/togo.go -program="++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++.>+.+++++++..+++.>++.<<+++++++++++++++.>.+++.------.--------.>+.>." -optimize_increments=true -optimize_pointer_increments=true -use_tinygo=false `
 
+ For now it's very dumb. It will fail if you are on linux, but it may end up working anyways, just that it cannot run the final executable. Try forking my repo and messing with togo/togo.go yourself. This code could actually be a python script that generates go and compiles it. Oh well!
+
 ## Misc
  Some brainfuck I wrote when I was 16:
  `++++++++++[>+++++<-]>-->,>,<<[>-<-]<++++++++++[>+++++<-]>--[>>l--<<--]<++++++++++[>>>>+>+++>+>+<<<<<<<-]>>>>>>-<+++++>++++++++++[<.>-]<<<+[>>.<.>>>-<<<<-]>>.---<<<[>>>..<<<-]>>>+++.<.>>>[<<.<.>>>-]`
