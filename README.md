@@ -12,6 +12,10 @@
 
  For now it's very dumb. It will fail if you are on linux, but it may end up working anyways, just that it cannot run the final executable. Try forking my repo and messing with togo/togo.go yourself. This code could actually be a python script that generates go and compiles it. Oh well!
 
+## Assembly
+
+I created kind of a small assembly language to generate brainfuck at a higher level. It seems to work as a PoC with typing a "Hello World!" program that prints. I have not tried anything more complex than this however.
+
 ## Misc
  Some brainfuck I wrote when I was 16:
  `++++++++++[>+++++<-]>-->,>,<<[>-<-]<++++++++++[>+++++<-]>--[>>l--<<--]<++++++++++[>>>>+>+++>+>+<<<<<<<-]>>>>>>-<+++++>++++++++++[<.>-]<<<+[>>.<.>>>-<<<<-]>>.---<<<[>>>..<<<-]>>>+++.<.>>>[<<.<.>>>-]`
