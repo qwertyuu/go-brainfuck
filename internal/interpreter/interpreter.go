@@ -1,27 +1,20 @@
-package main
+package interpreter
 
-import (
-	"bufio"
-	"fmt"
-	"os"
-	"time"
-)
+type rune_provider func() byte
+type output_processor func(byte)
 
-func main() {
-	t1 := time.Now()
-	mem := [30000]byte{}
-	loop_jump_positions := [30000]int{}
-	loop_jump_pointer := 0
-	input_buffer := ""
-	input_pointer := 0
-	mem_pointer := 0
-	program := os.Args[1]
-	program_pointer := 0
-	in := bufio.NewReader(os.Stdin)
+var loop_jump_pointer int
+var loop_jump_positions [30000]int
+var mem [30000]byte
+var mem_pointer int
+var program_pointer int
 
-	for {
-		instruction := program[program_pointer]
-		switch instruction {
+func RunProgram(program string, input_provider rune_provider, output_processor output_processor) {
+	loop_jump_pointer = 0
+	mem_pointer = 0
+
+	for program_pointer = 0; program_pointer < len(program); program_pointer++ {
+		switch program[program_pointer] {
 		case '+':
 			mem[mem_pointer]++
 		case '-':
@@ -31,19 +24,9 @@ func main() {
 		case '<':
 			mem_pointer--
 		case '.':
-			fmt.Printf("%c", mem[mem_pointer])
+			output_processor(mem[mem_pointer])
 		case ',':
-			if input_pointer >= len(input_buffer) {
-				fmt.Print("\nAwaiting input\n")
-				line, err := in.ReadString('\r')
-				if err != nil {
-					panic(err)
-				}
-				input_buffer = line
-				input_pointer = 0
-			}
-			mem[mem_pointer] = input_buffer[input_pointer]
-			input_pointer++
+			mem[mem_pointer] = input_provider()
 		case '[':
 			loop_jump_positions[loop_jump_pointer] = program_pointer
 			loop_jump_pointer++
@@ -54,8 +37,7 @@ func main() {
 				// if you encounter a [, ignore it and its ] counterpart
 			L:
 				for {
-					instruction := program[program_pointer]
-					switch instruction {
+					switch program[program_pointer] {
 					case '[':
 						loop_jump_pointer++
 					case ']':
@@ -75,10 +57,5 @@ func main() {
 			loop_jump_pointer--
 			program_pointer = loop_jump_positions[loop_jump_pointer] - 1
 		}
-		program_pointer++
-		if program_pointer >= len(program) {
-			break
-		}
 	}
-	fmt.Printf("\n%s\n", time.Since(t1))
 }
