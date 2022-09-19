@@ -8,15 +8,19 @@
  togo/togo.go is the second iteration that makes an BF > Go > Executable IL compiler to run your sweet BF directly in bytecode on your computer.
  It runs differently, you need to specify some arguments to run the program.
  Example:
- `go run togo/togo.go -program="++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++.>+.+++++++..+++.>++.<<+++++++++++++++.>.+++.------.--------.>+.>." -optimize_increments=true -optimize_pointer_increments=true -use_tinygo=false `
+ `go run togo/togo.go -program="++++++++++[>+++++++>++++++++++>+++>+<<<<-]>++.>+.+++++++..+++.>++.<<+++++++++++++++.>.+++.------.--------.>+.>." -optimize_increments=true -optimize_pointer_increments=true -use_tinygo=false`
 
  For now it's very dumb. It will fail if you are on linux, but it may end up working anyways, just that it cannot run the final executable. Try forking my repo and messing with togo/togo.go yourself. This code could actually be a python script that generates go and compiles it. Oh well!
+ 
+ EDIT: Having tried it on mac OS, the transpiling works but the last step that is to "run" the compiled file will fail as linux-based binaries are not .exe. Running `./bf` directly after running the above command works flawlessly.
 
 ## Assembly
 
-I created kind of a small assembly language to generate brainfuck at a higher level. It seems to work as a PoC with typing a "Hello World!" program that prints. I have not tried anything more complex than this however.
+I created kind of a small assembly language in `assembly/assembly.go` to generate brainfuck at a higher level. It seems to work as a PoC with typing a "Hello World!" program that prints. I have not tried anything more complex than this however.
+
+It won't create nested loops, so complex programs are out of the equation for now. I welcome you to contribute in ideas and in code.
 
 ## Misc
  Some brainfuck I wrote when I was 16:
- `++++++++++[>+++++<-]>-->,>,<<[>-<-]<++++++++++[>+++++<-]>--[>>l--<<--]<++++++++++[>>>>+>+++>+>+<<<<<<<-]>>>>>>-<+++++>++++++++++[<.>-]<<<+[>>.<.>>>-<<<<-]>>.---<<<[>>>..<<<-]>>>+++.<.>>>[<<.<.>>>-]`
+ `++++++++++[>+++++<-]>-->,>,<<[>-<-]<++++++++++[>+++++<-]>--[>>--<<--]<++++++++++[>>>>+>+++>+>+<<<<<<<-]>>>>>>-<+++++>++++++++++[<.>-]<<<+[>>.<.>>>-<<<<-]>>.---<<<[>>>..<<<-]>>>+++.<.>>>[<<.<.>>>-]`
  Takes 2 coordinates as input, produces a 2D plot with a dot drawn at those coordinates.
