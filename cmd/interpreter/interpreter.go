@@ -15,7 +15,7 @@ var input_reader *bufio.Reader
 func input_provider() byte {
 	if input_pointer >= len(input_buffer) {
 		fmt.Print("\nAwaiting input\n")
-		line, err := input_reader.ReadString('\r')
+		line, err := input_reader.ReadString('\n')
 		if err != nil {
 			panic(err)
 		}
@@ -33,6 +33,7 @@ func output_processor(to_print byte) {
 
 func main() {
 	t1 := time.Now()
+	input_reader = bufio.NewReader(os.Stdin)
 	interpreter.RunProgram(os.Args[1], input_provider, output_processor)
 	fmt.Printf("\n%s\n", time.Since(t1))
 }
