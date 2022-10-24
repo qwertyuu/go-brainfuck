@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math"
 	"strings"
 )
@@ -83,8 +82,12 @@ func Set_registers(registers []register_setting, buffer_register int) {
 			min_divisor_modulo_factor = byte(i)
 		}
 	}
-	fmt.Println(min_divisor_modulo_factor)
-	fmt.Println(min_divisor_modulo_sum)
+	if min_divisor_modulo_factor == 0 {
+		for i := 0; i < len(registers); i++ {
+			Set_register(registers[i].register_index, registers[i].data, registers[i].print)
+		}
+		return
+	}
 
 	// set base factor
 	Set_register(buffer_register, byte(min_divisor_modulo_factor), false)

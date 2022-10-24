@@ -29,6 +29,9 @@ func commit_increment(program *strings.Builder, counter *int, to_increment strin
 var optimize_increments bool
 var optimize_pointer_increments bool
 var use_tinygo bool
+var format_code bool
+var compile bool
+var time_program bool
 
 func main() {
 	program := ""
@@ -36,6 +39,9 @@ func main() {
 	flag.BoolVar(&optimize_increments, "optimize_increments", false, "Optimize increments by grouping them. might make weird stuff if your program is based around wrapping byte values (overflow or underflow) while this is active")
 	flag.BoolVar(&optimize_pointer_increments, "optimize_pointer_increments", true, "Optimize pointer increments. I see no reasons to disable this.")
 	flag.BoolVar(&use_tinygo, "use_tinygo", false, "Whether to use the go or tinygo compiler. tinygo needs to be installed and creates very small executables that run as fast or faster than go executables")
+	flag.BoolVar(&format_code, "format_code", true, "Format the IL code. Easier for a human to read but longer to run this script.")
+	flag.BoolVar(&compile, "compile", true, "Compile code after IL translation")
+	flag.BoolVar(&time_program, "time_program", true, "Add runtime stopwatch to the output")
 
 	flag.Parse() // after declaring flags we need to call it
 	var final_program strings.Builder
@@ -44,9 +50,11 @@ func main() {
 	needs_input := strings.Contains(program, ",")
 	imports := []string{
 		"fmt",
-		"time",
 	}
 
+	if time_program {
+		imports = append(imports, "time")
+	}
 	if needs_input {
 		imports = append(imports, "bufio")
 		imports = append(imports, "os")
@@ -80,10 +88,15 @@ func main() {
 	}
 	final_program.WriteString(`
 	func main() {
-	t1 := time.Now()
-	mem := [30000]byte{}
-	mem_pointer := 0
 `)
+	if time_program {
+		final_program.WriteString(`
+		t1 := time.Now()
+		`)
+	}
+	final_program.WriteString(`mem := [30000]byte{}
+	mem_pointer := 0
+	`)
 	if needs_input {
 		final_program.WriteString("in = bufio.NewReader(os.Stdin)\n")
 	}
@@ -132,36 +145,36 @@ func main() {
 			final_program.WriteString("}\n")
 		}
 	}
-	final_program.WriteString("fmt.Printf(\"\\n%s\\n\", time.Since(t1))}\n")
+	if time_program {
+		final_program.WriteString("fmt.Printf(\"\\n%s\\n\", time.Since(t1))\n")
+	}
+	final_program.WriteByte('}')
 
 	fmt.Println("Writing Go code to disk...")
 	err := os.WriteFile("asgo/bf.go", []byte(final_program.String()), 0644)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("Formatting Go code... (why not)")
-	cmd := exec.Command("gofmt", "-w", "asgo/bf.go")
-	err = cmd.Run()
-	if err != nil {
-		panic(err)
+	if format_code {
+		fmt.Println("Formatting Go code... (why not)")
+		cmd := exec.Command("gofmt", "-w", "asgo/bf.go")
+		err = cmd.Run()
+		if err != nil {
+			panic(err)
+		}
 	}
-	fmt.Println("Compiling Go code...")
-	if use_tinygo {
-		cmd = exec.Command("tinygo", "build", "-opt=2", "asgo/bf.go")
-	} else {
-		cmd = exec.Command("go", "build", "-ldflags=-s -w", "asgo/bf.go")
-	}
-	err = cmd.Run()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("Running compiled code...")
-	cmd = exec.Command("./bf.exe")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Run()
-	if err != nil {
-		panic(err)
+	if compile {
+		fmt.Println("Compiling Go code...")
+		var cmd *exec.Cmd
+		if use_tinygo {
+			cmd = exec.Command("tinygo", "build", "-opt=2", "-o", "bin/", "asgo/bf.go")
+		} else {
+			cmd = exec.Command("go", "build", "-ldflags=-s -w", "-o", "bin/", "asgo/bf.go")
+		}
+		err = cmd.Run()
+		if err != nil {
+			panic(err)
+		}
 	}
 
 }

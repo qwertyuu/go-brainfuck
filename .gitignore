@@ -22,3 +22,4 @@ go.work
 asgo/*
 !asgo/.gitfolder
 .vscode/
+bin/
