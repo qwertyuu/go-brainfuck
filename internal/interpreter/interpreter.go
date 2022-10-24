@@ -1,61 +1,61 @@
 package interpreter
 
-type rune_provider func() byte
-type output_processor func(byte)
+type runeProvider func() byte
+type outputProcessor func(byte)
 
-var loop_jump_pointer int
-var loop_jump_positions [30000]int
+var loopJumpPointer int
+var loopJumpPositions [30000]int
 var mem [30000]byte
-var mem_pointer int
-var program_pointer int
+var memPointer int
+var programPointer int
 
-func RunProgram(program string, input_provider rune_provider, output_processor output_processor) {
-	loop_jump_pointer = 0
-	mem_pointer = 0
+func RunProgram(program string, inputProvider runeProvider, outputProcessor outputProcessor) {
+	loopJumpPointer = 0
+	memPointer = 0
 
-	for program_pointer = 0; program_pointer < len(program); program_pointer++ {
-		switch program[program_pointer] {
+	for programPointer = 0; programPointer < len(program); programPointer++ {
+		switch program[programPointer] {
 		case '+':
-			mem[mem_pointer]++
+			mem[memPointer]++
 		case '-':
-			mem[mem_pointer]--
+			mem[memPointer]--
 		case '>':
-			mem_pointer++
+			memPointer++
 		case '<':
-			mem_pointer--
+			memPointer--
 		case '.':
-			output_processor(mem[mem_pointer])
+			outputProcessor(mem[memPointer])
 		case ',':
-			mem[mem_pointer] = input_provider()
+			mem[memPointer] = inputProvider()
 		case '[':
-			loop_jump_positions[loop_jump_pointer] = program_pointer
-			loop_jump_pointer++
-			if mem[mem_pointer] == 0 {
-				program_pointer++
-				target_looping_level := loop_jump_pointer
+			loopJumpPositions[loopJumpPointer] = programPointer
+			loopJumpPointer++
+			if mem[memPointer] == 0 {
+				programPointer++
+				targetLoopingLevel := loopJumpPointer
 				// search for the matching ]
 				// if you encounter a [, ignore it and its ] counterpart
 			L:
 				for {
-					switch program[program_pointer] {
+					switch program[programPointer] {
 					case '[':
-						loop_jump_pointer++
+						loopJumpPointer++
 					case ']':
-						if target_looping_level == loop_jump_pointer {
+						if targetLoopingLevel == loopJumpPointer {
 							break L
 						}
-						loop_jump_pointer--
+						loopJumpPointer--
 					}
-					program_pointer++
-					if program_pointer >= len(program) {
+					programPointer++
+					if programPointer >= len(program) {
 						panic("Could not find matching ] for looping.")
 					}
 				}
-				loop_jump_pointer--
+				loopJumpPointer--
 			}
 		case ']':
-			loop_jump_pointer--
-			program_pointer = loop_jump_positions[loop_jump_pointer] - 1
+			loopJumpPointer--
+			programPointer = loopJumpPositions[loopJumpPointer] - 1
 		}
 	}
 }

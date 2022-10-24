@@ -5,18 +5,18 @@ import (
 	"strings"
 )
 
-type register_setting struct {
-	register_index int
+type registerSetting struct {
+	registerIndex int
 	data           byte
 	print          bool
 }
 
-var final_program strings.Builder
+var finalProgram strings.Builder
 var mem [30000]byte
-var register_pointer int
+var registerPointer int
 
 func main() {
-	Set_registers([]register_setting{
+	SetRegisters([]registerSetting{
 		{1, 'H', true},  // 72
 		{2, 'e', true},  // 101
 		{3, ' ', false}, // 32
@@ -24,22 +24,22 @@ func main() {
 	}, 0)
 
 	// Hello
-	Set_register(2, 'l', true)
-	Print_register(2)
-	Set_register(2, 'o', true)
+	SetRegister(2, 'l', true)
+	PrintRegister(2)
+	SetRegister(2, 'o', true)
 
 	// space
-	Print_register(3)
+	PrintRegister(3)
 
 	// World
-	Set_register(1, 'W', true)
-	Print_register(2)
-	Set_register(2, 'r', true)
-	Set_register(2, 'l', true)
-	Set_register(2, 'd', true)
-	Set_register(3, '!', true)
-	Print_register(4)
-	println(final_program.String())
+	SetRegister(1, 'W', true)
+	PrintRegister(2)
+	SetRegister(2, 'r', true)
+	SetRegister(2, 'l', true)
+	SetRegister(2, 'd', true)
+	SetRegister(3, '!', true)
+	PrintRegister(4)
+	println(finalProgram.String())
 }
 
 func abs(value int) byte {
@@ -49,113 +49,113 @@ func abs(value int) byte {
 	return byte(value)
 }
 
-func Set_registers(registers []register_setting, buffer_register int) {
+func SetRegisters(registers []registerSetting, bufferRegister int) {
 	if len(registers) == 1 {
-		Set_register(registers[0].register_index, registers[0].data, registers[0].print)
+		SetRegister(registers[0].registerIndex, registers[0].data, registers[0].print)
 		return
 	}
 	// TODO: ensure that all register index are unique
 
-	register_value_diffs := make([]int, len(registers))
+	registerValueDiffs := make([]int, len(registers))
 	for i, register := range registers {
-		register_value_diffs[i] = int(register.data) - int(mem[register.register_index])
+		registerValueDiffs[i] = int(register.data) - int(mem[register.registerIndex])
 	}
 
-	min_abs_diff_value := byte(math.MaxUint8)
-	for _, diff := range register_value_diffs {
-		int_data := abs(diff)
-		if int_data < min_abs_diff_value {
-			min_abs_diff_value = int_data
+	minAbsDiffValue := byte(math.MaxUint8)
+	for _, diff := range registerValueDiffs {
+		intData := abs(diff)
+		if intData < minAbsDiffValue {
+			minAbsDiffValue = intData
 		}
 	}
 
-	min_divisor_modulo_sum := math.MaxInt
-	min_divisor_modulo_factor := byte(0)
-	for i := byte(2); i < min_abs_diff_value; i++ {
-		divisor_modulo_sum := 0
-		for _, diff := range register_value_diffs {
-			divisor_modulo_sum += diff % int(i)
-			divisor_modulo_sum += diff / int(i)
+	minDivisorModuloSum := math.MaxInt
+	minDivisorModuloFactor := byte(0)
+	for i := byte(2); i < minAbsDiffValue; i++ {
+		divisorModuloSum := 0
+		for _, diff := range registerValueDiffs {
+			divisorModuloSum += diff % int(i)
+			divisorModuloSum += diff / int(i)
 		}
-		if divisor_modulo_sum < min_divisor_modulo_sum {
-			min_divisor_modulo_sum = divisor_modulo_sum
-			min_divisor_modulo_factor = byte(i)
+		if divisorModuloSum < minDivisorModuloSum {
+			minDivisorModuloSum = divisorModuloSum
+			minDivisorModuloFactor = byte(i)
 		}
 	}
-	if min_divisor_modulo_factor == 0 {
+	if minDivisorModuloFactor == 0 {
 		for i := 0; i < len(registers); i++ {
-			Set_register(registers[i].register_index, registers[i].data, registers[i].print)
+			SetRegister(registers[i].registerIndex, registers[i].data, registers[i].print)
 		}
 		return
 	}
 
 	// set base factor
-	Set_register(buffer_register, byte(min_divisor_modulo_factor), false)
+	SetRegister(bufferRegister, byte(minDivisorModuloFactor), false)
 
-	final_program.WriteByte('[')
-	final_program.WriteString(get_move_between_registers(buffer_register, registers[0].register_index))
-	final_program.WriteString(get_move_between_values(mem[registers[0].register_index], registers[0].data/min_divisor_modulo_factor))
-	mem[registers[0].register_index] = registers[0].data / min_divisor_modulo_factor * min_divisor_modulo_factor
+	finalProgram.WriteByte('[')
+	finalProgram.WriteString(getMoveBetweenRegisters(bufferRegister, registers[0].registerIndex))
+	finalProgram.WriteString(getMoveBetweenValues(mem[registers[0].registerIndex], registers[0].data/minDivisorModuloFactor))
+	mem[registers[0].registerIndex] = registers[0].data / minDivisorModuloFactor * minDivisorModuloFactor
 
 	for i := 1; i < len(registers); i++ {
-		final_program.WriteString(get_move_between_registers(registers[i-1].register_index, registers[i].register_index))
-		final_program.WriteString(get_move_between_values(mem[registers[i].register_index], registers[i].data/min_divisor_modulo_factor))
-		mem[registers[i].register_index] = registers[i].data / min_divisor_modulo_factor * min_divisor_modulo_factor
+		finalProgram.WriteString(getMoveBetweenRegisters(registers[i-1].registerIndex, registers[i].registerIndex))
+		finalProgram.WriteString(getMoveBetweenValues(mem[registers[i].registerIndex], registers[i].data/minDivisorModuloFactor))
+		mem[registers[i].registerIndex] = registers[i].data / minDivisorModuloFactor * minDivisorModuloFactor
 	}
 	// move back to the buffer register
-	final_program.WriteString(get_move_between_registers(registers[len(registers)-1].register_index, buffer_register))
-	final_program.WriteString("-]")
+	finalProgram.WriteString(getMoveBetweenRegisters(registers[len(registers)-1].registerIndex, bufferRegister))
+	finalProgram.WriteString("-]")
 
-	final_program.WriteString(get_move_between_registers(buffer_register, registers[0].register_index))
-	final_program.WriteString(get_move_between_values(mem[registers[0].register_index], registers[0].data))
-	mem[registers[0].register_index] = registers[0].data
+	finalProgram.WriteString(getMoveBetweenRegisters(bufferRegister, registers[0].registerIndex))
+	finalProgram.WriteString(getMoveBetweenValues(mem[registers[0].registerIndex], registers[0].data))
+	mem[registers[0].registerIndex] = registers[0].data
 	if registers[0].print {
-		final_program.WriteByte('.')
+		finalProgram.WriteByte('.')
 	}
 
 	for i := 1; i < len(registers); i++ {
-		final_program.WriteString(get_move_between_registers(registers[i-1].register_index, registers[i].register_index))
-		final_program.WriteString(get_move_between_values(mem[registers[i].register_index], registers[i].data))
-		mem[registers[i].register_index] = registers[i].data
+		finalProgram.WriteString(getMoveBetweenRegisters(registers[i-1].registerIndex, registers[i].registerIndex))
+		finalProgram.WriteString(getMoveBetweenValues(mem[registers[i].registerIndex], registers[i].data))
+		mem[registers[i].registerIndex] = registers[i].data
 		if registers[i].print {
-			final_program.WriteByte('.')
+			finalProgram.WriteByte('.')
 		}
 	}
 
-	register_pointer = registers[len(registers)-1].register_index
+	registerPointer = registers[len(registers)-1].registerIndex
 }
 
-func get_move_between_registers(from int, to int) string {
+func getMoveBetweenRegisters(from int, to int) string {
 	if from < to {
 		return strings.Repeat(">", to-from)
 	}
 	return strings.Repeat("<", from-to)
 }
 
-func get_move_between_values(from byte, to byte) string {
+func getMoveBetweenValues(from byte, to byte) string {
 	if from < to {
 		return strings.Repeat("+", int(to-from))
 	}
 	return strings.Repeat("-", int(from-to))
 }
 
-func Print_register(buffer_register int) {
-	move_to(buffer_register)
-	final_program.WriteRune('.')
+func PrintRegister(bufferRegister int) {
+	moveTo(bufferRegister)
+	finalProgram.WriteRune('.')
 }
 
-func move_to(destination_register_index int) {
+func moveTo(destinationRegisterIndex int) {
 	// move to this register
-	final_program.WriteString(get_move_between_registers(register_pointer, destination_register_index))
-	register_pointer = destination_register_index
+	finalProgram.WriteString(getMoveBetweenRegisters(registerPointer, destinationRegisterIndex))
+	registerPointer = destinationRegisterIndex
 }
 
-func Set_register(destination_register_index int, data byte, print bool) {
-	move_to(destination_register_index)
+func SetRegister(destinationRegisterIndex int, data byte, print bool) {
+	moveTo(destinationRegisterIndex)
 	// check what value this register is at now and apply the diff
-	final_program.WriteString(get_move_between_values(mem[destination_register_index], data))
-	mem[destination_register_index] = data
+	finalProgram.WriteString(getMoveBetweenValues(mem[destinationRegisterIndex], data))
+	mem[destinationRegisterIndex] = data
 	if print {
-		final_program.WriteByte('.')
+		finalProgram.WriteByte('.')
 	}
 }

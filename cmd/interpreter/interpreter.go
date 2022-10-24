@@ -8,32 +8,32 @@ import (
 	"time"
 )
 
-var input_pointer int
-var input_buffer string
-var input_reader *bufio.Reader
+var inputPointer int
+var inputBuffer string
+var inputReader *bufio.Reader
 
-func input_provider() byte {
-	if input_pointer >= len(input_buffer) {
+func inputProvider() byte {
+	if inputPointer >= len(inputBuffer) {
 		fmt.Print("\nAwaiting input\n")
-		line, err := input_reader.ReadString('\n')
+		line, err := inputReader.ReadString('\n')
 		if err != nil {
 			panic(err)
 		}
-		input_buffer = line
-		input_pointer = 0
+		inputBuffer = line
+		inputPointer = 0
 	}
-	to_return := input_buffer[input_pointer]
-	input_pointer++
-	return to_return
+	toReturn := inputBuffer[inputPointer]
+	inputPointer++
+	return toReturn
 }
 
-func output_processor(to_print byte) {
-	fmt.Printf("%c", to_print)
+func outputProcessor(toPrint byte) {
+	fmt.Printf("%c", toPrint)
 }
 
 func main() {
 	t1 := time.Now()
-	input_reader = bufio.NewReader(os.Stdin)
-	interpreter.RunProgram(os.Args[1], input_provider, output_processor)
+	inputReader = bufio.NewReader(os.Stdin)
+	interpreter.RunProgram(os.Args[1], inputProvider, outputProcessor)
 	fmt.Printf("\n%s\n", time.Since(t1))
 }
