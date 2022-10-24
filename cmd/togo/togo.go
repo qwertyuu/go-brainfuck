@@ -26,33 +26,27 @@ func commitIncrement(program *strings.Builder, counter *int, toIncrement string)
 	*counter = 0
 }
 
-var optimizeIncrements bool
-var optimizePointerIncrements bool
-var useTinygo bool
-var formatCode bool
-var compile bool
-var timeProgram bool
+var optimizeIncrements = flag.Bool("optimize_increments", false, "Optimize increments by grouping them. might make weird stuff if your program is based around wrapping byte values (overflow or underflow) while this is active")
+var optimizePointerIncrements = flag.Bool("optimize_pointer_increments", true, "Optimize pointer increments. I see no reasons to disable this.")
+
+var useTinygo = flag.Bool("use_tinygo", false, "Whether to use the go or tinygo compiler. tinygo needs to be installed and creates very small executables that run as fast or faster than go executables")
+var formatCode = flag.Bool("format_code", true, "Format the IL code. Easier for a human to read but longer to run this script.")
+var compile = flag.Bool("compile", true, "Compile code after IL translation")
+var timeProgram = flag.Bool("time_program", true, "Add runtime stopwatch to the output")
+
+var program = flag.String("program", "", "BF program to convert to Go")
 
 func main() {
-	program := ""
-	flag.StringVar(&program, "program", "", "BF program to convert to Go")
-	flag.BoolVar(&optimizeIncrements, "optimize_increments", false, "Optimize increments by grouping them. might make weird stuff if your program is based around wrapping byte values (overflow or underflow) while this is active")
-	flag.BoolVar(&optimizePointerIncrements, "optimize_pointer_increments", true, "Optimize pointer increments. I see no reasons to disable this.")
-	flag.BoolVar(&useTinygo, "use_tinygo", false, "Whether to use the go or tinygo compiler. tinygo needs to be installed and creates very small executables that run as fast or faster than go executables")
-	flag.BoolVar(&formatCode, "format_code", true, "Format the IL code. Easier for a human to read but longer to run this script.")
-	flag.BoolVar(&compile, "compile", true, "Compile code after IL translation")
-	flag.BoolVar(&timeProgram, "time_program", true, "Add runtime stopwatch to the output")
-
-	flag.Parse() // after declaring flags we need to call it
+	flag.Parse() // after declaring flags we need to parse them
 	var finalProgram strings.Builder
 	incrementCounter := 0
 	memIncrementCounter := 0
-	needsInput := strings.Contains(program, ",")
+	needsInput := strings.Contains(*program, ",")
 	imports := []string{
 		"fmt",
 	}
 
-	if timeProgram {
+	if *timeProgram {
 		imports = append(imports, "time")
 	}
 	if needsInput {
@@ -89,7 +83,7 @@ func main() {
 	finalProgram.WriteString(`
 	func main() {
 `)
-	if timeProgram {
+	if *timeProgram {
 		finalProgram.WriteString(`
 		t1 := time.Now()
 		`)
@@ -101,34 +95,34 @@ func main() {
 		finalProgram.WriteString("in = bufio.NewReader(os.Stdin)\n")
 	}
 
-	for _, instruction := range program {
-		if optimizeIncrements && !(instruction == '+' || instruction == '-') {
+	for _, instruction := range *program {
+		if *optimizeIncrements && !(instruction == '+' || instruction == '-') {
 			commitIncrement(&finalProgram, &incrementCounter, "mem[memPointer]")
 		}
-		if optimizePointerIncrements && !(instruction == '>' || instruction == '<') {
+		if *optimizePointerIncrements && !(instruction == '>' || instruction == '<') {
 			commitIncrement(&finalProgram, &memIncrementCounter, "memPointer")
 		}
 		switch instruction {
 		case '+':
-			if optimizeIncrements {
+			if *optimizeIncrements {
 				incrementCounter++
 			} else {
 				finalProgram.WriteString("mem[memPointer]++\n")
 			}
 		case '-':
-			if optimizeIncrements {
+			if *optimizeIncrements {
 				incrementCounter--
 			} else {
 				finalProgram.WriteString("mem[memPointer]--\n")
 			}
 		case '>':
-			if optimizePointerIncrements {
+			if *optimizePointerIncrements {
 				memIncrementCounter++
 			} else {
 				finalProgram.WriteString("memPointer++\n")
 			}
 		case '<':
-			if optimizePointerIncrements {
+			if *optimizePointerIncrements {
 				memIncrementCounter--
 			} else {
 				finalProgram.WriteString("memPointer--\n")
@@ -145,7 +139,7 @@ func main() {
 			finalProgram.WriteString("}\n")
 		}
 	}
-	if timeProgram {
+	if *timeProgram {
 		finalProgram.WriteString("fmt.Printf(\"\\n%s\\n\", time.Since(t1))\n")
 	}
 	finalProgram.WriteByte('}')
@@ -155,7 +149,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	if formatCode {
+	if *formatCode {
 		fmt.Println("Formatting Go code... (why not)")
 		cmd := exec.Command("gofmt", "-w", "asgo/bf.go")
 		err = cmd.Run()
@@ -163,10 +157,10 @@ func main() {
 			panic(err)
 		}
 	}
-	if compile {
+	if *compile {
 		fmt.Println("Compiling Go code...")
 		var cmd *exec.Cmd
-		if useTinygo {
+		if *useTinygo {
 			cmd = exec.Command("tinygo", "build", "-opt=2", "-o", "bin/", "asgo/bf.go")
 		} else {
 			cmd = exec.Command("go", "build", "-ldflags=-s -w", "-o", "bin/", "asgo/bf.go")

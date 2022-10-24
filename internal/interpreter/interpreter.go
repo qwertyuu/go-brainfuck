@@ -10,6 +10,8 @@ var memPointer int
 var programPointer int
 
 func RunProgram(program string, inputProvider runeProvider, outputProcessor outputProcessor) {
+	mem = [30000]byte{}
+	loopJumpPositions = [30000]int{}
 	loopJumpPointer = 0
 	memPointer = 0
 
